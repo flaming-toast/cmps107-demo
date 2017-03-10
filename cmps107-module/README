@@ -1,0 +1,23 @@
+To build the cmps107.ko module, run `make'
+
+NOTE!!! If you've compiled your own kernel, you must override BUILDPATH
+and supply the path to its build directory
+
+You can override the build directory by specifying BUILDPATH on the command line:
+
+make BUILDPATH=...
+
+After building the kernel module, copy the resulting *.ko file into the
+"initramfs" directory and run ./create-initramfs to generate a new
+filesystem image for the kernel to boot into. If done successfully, you
+should see the cmps107.ko module in the root directory of the filesystem
+when you boot your kernel with qemu.
+
+To load your module after booting your kernel, run:
+
+insmod cmps107.ko
+
+To check if the module has loaded, run `lsmod'
+
+Have fun!
+

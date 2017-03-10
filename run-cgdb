@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Note: change to gdb if cgdb is not available
+
+cgdb -ex "target remote localhost:1234" $1

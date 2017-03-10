@@ -1,0 +1,5 @@
+#!/bin/busybox sh
+mount -t proc none /proc
+mount -t sysfs none /sys
+
+exec /sbin/init

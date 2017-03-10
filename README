@@ -1,0 +1,101 @@
+Requirements
+------------
+Install:
+
+- qemu
+- cgdb/gdb
+- tmux/screen is optional, but nice for viewing multiple terminals on one
+  screen
+- kernel debug packages for your distribution is optional if you are
+  compiling your own kernel
+
+If you're running a linux distribution, packages for these tools should be
+readily available.
+
+Quick setup
+-----------
+0. Compile your own kernel, or use your distribution's (you will need to
+install additional debug packages to get the vmlinux file if you use the
+kernel your distro provides).
+
+If you compile your own kernel, make sure that CONFIG_DEBUG_INFO is enabled
+and CONFIG_RANDOMIZE_BASE is disabled (for gdb to work properly). You can
+also speed up compilation by just running `make vmlinux bzImage` (to
+parallelize this, run `make` with -j <number_of_threads>) , which would
+only compile the vmlinux image and skip compiling all those modules (which
+are unnecessary for running this demo). If you only stick with compiling
+vmlinux, compilation shouldn't take long at all.
+
+If you need a base .config, running `make defconfig` will give you a
+minimal default configuration based on your architecture. If you're running
+a linux distro, your distro may provide configs under /boot, which you may
+copy into your build directory (make sure to rename it to .config) and use
+for your build.
+
+Kernel sources are available at https://kernel.org/. For the in-class demo,
+I used the sources for the latest 4.10.1 stable kernel.
+
+1. Once you've compiled your kernel, run `./run-qemu /path/to/bzImage` in
+one terminal. It should look like it is hanging, but it's actually just
+listening for a gdb connection.
+
+   If you compile your own kernel on x86 for example, you can find the
+   compressed, bootable kernel image under arch/x86/boot/bzImage.
+
+   For example, on my machine, I'd run:
+
+   ./run-qemu /home/jeyu/linux-stable/arch/x86/boot/bzImage
+
+2. Run `./run-cgdb /path/to/vmlinux` in another terminal.
+
+   If you compiled your own kernel, you can find vmlinux under the
+   top level directory of your build sources.
+
+   For example, on my machine, I'd run:
+
+   ./run-cgdb /home/jeyu/linux-stable/vmlinux
+
+3. cgdb should be able to attach to qemu. Type 'continue' in cgdb to let
+the kernel boot in qemu.
+
+   During our demo, we set a breakpoint at a function named cmdline_proc_show.
+   In cgdb, type:
+
+   break cmdline_proc_show
+
+   cgdb should report that the breakpoint has been set. Now, try reading
+   from the /proc/cmdline file:
+
+   cat /proc/cmdline
+
+   Once you execute cat, cgdb should show that the breakpoint has been hit,
+   and you can step through the function, print variables, etc.
+
+   To let the kernel continue execution after the breakpoint has been hit,
+   type "continue" into cgdb.
+
+   Note: To quit qemu, hit '<Ctrl>+a', then 'x'
+
+4. You can now debug the kernel, set breakpoints, etc. in cgdb! If you'd
+like to debug the sample cmps107 module, please read the README under the
+cmps107-module/ directory.
+
+Have fun!
+
+
+Issues
+------
+Make sure CONFIG_RANDOMIZE_BASE (kernel address space randomization) is
+unset, or else gdb won't be able to set breakpoints:
+
+```
+(gdb) b meminfo_proc_show
+Breakpoint 1 at 0xffffffff812e8540: file
+/home/jyu/work/linux-next/fs/proc/meminfo.c, line 46.
+(gdb) c
+Continuing.
+Warning:
+Cannot insert breakpoint 1.
+Cannot access memory at address 0xffffffff812e8540
+Command aborted.
+```
